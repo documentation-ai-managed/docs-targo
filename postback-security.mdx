@@ -9,7 +9,7 @@ To ensure that all postbacks are genuine and originate from TarGo, each callback
 
 - You define your postback URL, for example:
 
-```typescript
+```plaintext
 https://yourpostback.com/pb?uid={user_id}&reward={reward}
 ```
 
@@ -17,7 +17,7 @@ https://yourpostback.com/pb?uid={user_id}&reward={reward}
 
 - TarGo computes the signature:
 
-```typescript
+```plaintext
 hash = HMAC-SHA1( full_callback_url_with_hash_empty , app_secret_key TarGo replaces the empty hash value with the computed hash and sends the final callback to your server.
 
 ```
@@ -26,13 +26,25 @@ hash = HMAC-SHA1( full_callback_url_with_hash_empty , app_secret_key TarGo repla
 
 **Example Final Request:**
 
-```typescript
+```plaintext
 https://yourpostback.com/pb?uid=abc123&reward=500&hash=dbcd6bb892842a52b4fca9bec36cd4b
 ```
 
+### **⚠️ Important Notes**
 
+| **Rule**                                                                 | **Description**                                         | **Why It Matters** |
+| ------------------------------------------------------------------------ | ------------------------------------------------------- | ------------------ |
+| **Do NOT modify the URL**                                                | Verify the hash using the **exact** URL string received |                    |
+| **Do NOT reorder query parameters**                                      | Keep parameter order exactly as TarGo sent it           |                    |
+| **Do NOT encode or decode the URL**                                      | Do not apply `decode`, `encode`, or format conversions  |                    |
+| **Keep&#x20;**`hash=`**&#x20;placeholder but empty during verification** | Replace `hash=VALUE` → `hash=` before hashing           |                    |
+| **Use HMAC-SHA1 Algorithm**                                              | Hash is always `HMAC-SHA1(URL, secret_key)`             |                    |
+| **Compare using a timing-safe compare**                                  | Use `hash_equals()` / `timingSafeEqual()`               |                    |
+| **Use full URL including domain**                                        | Hash input must include scheme, host, path & query      |                    |
 
-<CodeGroup default-tab="1" show-lines="true" tabs={["new-file.txt"]}>
+---
+
+<CodeGroup show-lines="true" tabs={["new-file.txt"]}>
   ```php
   <?php
 
@@ -85,4 +97,12 @@ https://yourpostback.com/pb?uid=abc123&reward=500&hash=dbcd6bb892842a52b4fca9bec
 
   ```
 </CodeGroup>
+
+
+
+### **IP Whitelisting**
+
+You can restrict the callbacks to be accepted only from our sever IP address(es). Please whitelist the following IP(s) and regularly check back to find possible changes
+
+- 15.204.134.17
 

@@ -9,20 +9,20 @@ description: >-
 ---
 ### **Parameter Configuration**
 
-| **Parameter**      | **Format** | **Description** |
-| ------------------ | ---------- | --------------- |
-| `{user_id}`        |            |                 |
-| `{tx_id}`          |            |                 |
-| `{reward}`         |            |                 |
-| `{payout}`         |            |                 |
-| `{status}`         |            |                 |
-| **\{offer\_name]** |            |                 |
-| **\{offer\_id}**   |            |                 |
-| `{event_id}`       |            |                 |
-| `{event_name}`     |            |                 |
-| `{ip}`             |            |                 |
-| `{country_code}`   |            |                 |
-| `{timestamp}`      |            |                 |
-| `{sub1}`           |            |                 |
-| `{sub2}`           |            |                 |
+| **Parameter**    | **Format**       | **Description**                                                                                               |
+| ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| `{user_id}`      | String / Integer | The unique user identifier you passed to the offerwall (UID). Used to credit the correct user in your system. |
+| `{tx_id}`        | String           | Unique transaction ID for the reward event. Used to prevent duplicate credits.                                |
+| `{reward}`       | Float            | The amount of **virtual currency** you should credit to the user (after applying your multiplier).            |
+| `{payout}`       | Float (USD)      | The **real earnings** you receive for this conversion (in USD). This is what goes to your account balance.    |
+| `{status}`       | Integer          | Event status: `1` = Approved, `2` = Reversed / Chargeback (if fraud or invalid).                              |
+| \{offer\_name]   |                  |                                                                                                               |
+| \{offer\_id}     |                  |                                                                                                               |
+| `{event_id}`     | String / Integer | Offer or survey internal event ID. Useful for tracking specific events.                                       |
+| `{event_name}`   | String           | Name of the completed event                                                                                   |
+| `{ip}`           | IP Address       | IP address of the user at the moment of completion. Useful for fraud analysis.                                |
+| `{country_code}` | ISO-3166 Code    |                                                                                                               |
+| `{timestamp}`    | Unix Timestamp   | The UNIX timestamp (in seconds) representing when the user initially clicked the offer.                       |
+| `{sub1}`         | String           | Your sub1 value passed in offerwall link                                                                      |
+| `{sub2}`         | String           | Your sub2 value passed in offerwall link                                                                      |
 
