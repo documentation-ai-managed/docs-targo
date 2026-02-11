@@ -32,15 +32,15 @@ https://yourpostback.com/pb?uid=abc123&reward=500&hash=dbcd6bb892842a52b4fca9bec
 
 ### **⚠️ Important Notes**
 
-| **Rule**                                                                 | **Description**                                         | **Why It Matters** |
-| ------------------------------------------------------------------------ | ------------------------------------------------------- | ------------------ |
-| **Do NOT modify the URL**                                                | Verify the hash using the **exact** URL string received |                    |
-| **Do NOT reorder query parameters**                                      | Keep parameter order exactly as TarGo sent it           |                    |
-| **Do NOT encode or decode the URL**                                      | Do not apply `decode`, `encode`, or format conversions  |                    |
-| **Keep&#x20;**`hash=`**&#x20;placeholder but empty during verification** | Replace `hash=VALUE` → `hash=` before hashing           |                    |
-| **Use HMAC-SHA1 Algorithm**                                              | Hash is always `HMAC-SHA1(URL, secret_key)`             |                    |
-| **Compare using a timing-safe compare**                                  | Use `hash_equals()` / `timingSafeEqual()`               |                    |
-| **Use full URL including domain**                                        | Hash input must include scheme, host, path & query      |                    |
+| **Rule**                                                                 | **Description**                                         | **Why It Matters**                                           |
+| ------------------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------ |
+| **Do NOT modify the URL**                                                | Verify the hash using the **exact** URL string received | Any change results in a different hash and failed validation |
+| **Do NOT reorder query parameters**                                      | Keep parameter order exactly as TarGo sent it           | Parameter order affects the hash value                       |
+| **Do NOT encode or decode the URL**                                      | Do not apply `decode`, `encode`, or format conversions  | Encoding changes characters and invalidates the hash         |
+| **Keep&#x20;**`hash=`**&#x20;placeholder but empty during verification** | Replace `hash=VALUE` → `hash=` before hashing           | The hash is computed on the URL **with hash value removed**  |
+| **Use HMAC-SHA1 Algorithm**                                              | Hash is always `HMAC-SHA1(URL, secret_key)`             | Other algorithms will not match the signature                |
+| **Compare using a timing-safe compare**                                  | Use `hash_equals()` / `timingSafeEqual()`               | Prevents timing-based forgery attacks                        |
+| **Use full URL including domain**                                        | Hash input must include scheme, host, path & query      | Hash must match TarGo’s full signed string                   |
 
 ---
 
