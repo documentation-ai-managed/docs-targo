@@ -16,37 +16,44 @@
     "pages": [
       {
         "title": "Introduction",
-        "path": "introduction"
+        "path": "introduction",
+        "icon": "rocket"
       },
       {
         "title": "Create Publisher Account",
-        "path": "create-publisher-account"
+        "path": "create-publisher-account",
+        "icon": "lucide-pen"
       },
       {
-        "group": "INTEGRATION",
+        "title": "Create Your App",
+        "path": "create-your-app",
+        "icon": "app-window"
+      },
+      {
+        "title": "iFrame Setup",
+        "path": "iframe-setup",
+        "icon": "link"
+      },
+      {
+        "group": "Postback Configuration (S2S)",
         "pages": [
           {
-            "title": "Create Your App",
-            "path": "create-your-app"
+            "title": "Configuration ",
+            "path": "configuration",
+            "icon": "circle-plus"
           },
           {
-            "title": "iFrame Setup",
-            "path": "iframe-setup"
+            "title": "Postback Security",
+            "path": "postback-security",
+            "icon": "lucide-shield-check"
           },
           {
-            "group": "Postback Configuration (S2S)",
-            "pages": [
-              {
-                "title": "Postback Security",
-                "path": "postback-security"
-              },
-              {
-                "title": "Postback Test",
-                "path": "postback-test"
-              }
-            ]
+            "title": "Postback Test",
+            "path": "postback-test",
+            "icon": "lucide-test-tube"
           }
-        ]
+        ],
+        "icon": "lucide-server"
       }
     ]
   },
