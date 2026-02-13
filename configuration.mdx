@@ -26,6 +26,12 @@ description: >-
 | `{sub1}`         | String           | Your sub1 value passed in offerwall link                                                                           |
 | `{sub2}`         | String           | Your sub2 value passed in offerwall link                                                                           |
 
+<Callout kind="info" collapsed="false">
+  *We automatically add &#x20;*`&hash={hash}`
+
+  *to all postback URLs. If you want to verify the request and ensure security, please validate the&#x20;****hash&#x20;****parameter.*
+</Callout>
+
 ### **Response**
 
 Our system considers a postback successfully processed only if your server responds with **HTTP status code 200** and the **response body contains either&#x20;**`1`**&#x20;or&#x20;**`OK`.
