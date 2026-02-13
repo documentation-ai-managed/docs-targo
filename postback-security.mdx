@@ -1,34 +1,51 @@
 ---
 title: Postback Security
 ---
-### **HMAC Hashing**
+## HMAC Hashing & Security
 
-To ensure that all postbacks are genuine and originate from TarGo, each callback request includes a security signature called a **hash**. This hash is automatically appended to the end of every postback URL we send.
+To ensure that all postbacks are genuine and originate strictly from **TarGo**, each callback request includes a security signature called a **hash**. This hash is automatically appended to the end of every postback URL we send to prevent data tampering.
 
 ### **How It Works**
 
-- You define your postback URL, for example:
+1. **Define your URL:** You provide your postback URL with placeholders, for example:
 
 ```plaintext
-https://yourpostback.com/pb?uid={user_id}&reward={reward}
+https://yourdomain.com/pb?uid={user_id}&reward={payout}
 ```
 
-- TarGo replaces the placeholders (`{user_id}`, `{reward}`, etc.) with real values.
+1. **Replace Placeholders:** TarGo replaces the placeholders (like `{user_id}` and `{payout}`) with actual conversion data.
 
-- TarGo computes the signature:
+2. **Compute the Signature:** TarGo calculates the signature using the following logic:
+
+```plaintext wrap="true"
+hash=HMAC-SHA1(full_callback_url_with_empty_hash,app_secret_key)
+```
+
+1. **Final Delivery:** TarGo replaces the empty hash parameter with the newly computed hash and sends the final request to your server.
+
+---
+
+### **Example Final Request**
+
+The final URL sent to your server will look like this:
 
 ```plaintext
-hash = HMAC-SHA1( full_callback_url_with_hash_empty , app_secret_key TarGo replaces the empty hash value with the computed hash and sends the final callback to your server.
-
+https://yourdomain.com/pb?uid=abc123&reward=5.00&hash=dbcd6bb892842a52b4fca9bec36cd4b
 ```
 
-- TarGo replaces the empty hash value with the computed hash and sends the final callback to your server.
+---
 
-**Example Final Request:**
+### **Verification Logic**
 
-```plaintext
-https://yourpostback.com/pb?uid=abc123&reward=500&hash=dbcd6bb892842a52b4fca9bec36cd4b
-```
+To verify the request on your end, you should:
+
+1. Capture the full URL received.
+
+2. Set the `hash` value to empty.
+
+3. Run the same **HMAC-SHA1** function using your **App Secret Key**.
+
+4. Compare your result with the hash provided in the URL. If they match, the request is authentic.
 
 ### **⚠️ Important Notes**
 
@@ -44,23 +61,28 @@ https://yourpostback.com/pb?uid=abc123&reward=500&hash=dbcd6bb892842a52b4fca9bec
 
 ---
 
+
+
 <CodeGroup show-lines="true" tabs={["PHP","Python"]}>
   ```php PHP
   <?php
 
   $secretKey = "YOUR_SECRET_KEY";
 
-  // Build full raw URL
+  // Get the raw POST data
+  $receivedHash = $_GET['hash'] ?? '';
+
+  // Rebuild the full URL excluding the hash
   $fullUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
            . "://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
 
-  $receivedHash = $_GET['hash'] ?? '';
-
-  // Remove hash value → leave "hash="
+  // Remove the hash value → leave "hash="
   $urlWithoutHash = preg_replace('/hash=[A-Za-z0-9]+/i', 'hash=', $fullUrl);
 
+  // Calculate expected hash
   $expectedHash = hash_hmac('sha1', $urlWithoutHash, $secretKey);
 
+  // Compare hashes securely
   if (hash_equals($expectedHash, $receivedHash)) {
       http_response_code(200);
       echo "OK";
@@ -69,31 +91,50 @@ https://yourpostback.com/pb?uid=abc123&reward=500&hash=dbcd6bb892842a52b4fca9bec
       echo "INVALID";
   }
 
+
   ```
 
   ```python wrap="true" Python
   import hmac
   import hashlib
-  from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+  import re
+  from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 
-  secret_key = b"YOUR_SECRET_KEY"
+  # === Configuration ===
+  SECRET_KEY = b"YOUR_SECRET_KEY"  # Must be bytes
 
-  def verify(full_url):
-      parsed = urlparse(full_url)
-      query = parse_qs(parsed.query)
+  # Example input URL
+  full_url = "https://example.com/callback?param1=value1&hash=abc123"
 
-      received_hash = query.get("hash", [""])[0]
+  # Parse the URL
+  parsed = urlparse(full_url)
+  query_params = parse_qs(parsed.query)
 
-      query["hash"] = [""]  # remove value, keep key
-      ordered_query = urlencode(query, doseq=True)
+  # Get the received hash
+  received_hash = query_params.get('hash', [''])[0]
 
-      url_without_hash = urlunparse(parsed._replace(query=ordered_query))
+  # Replace the hash value → leave "hash="
+  query_params['hash'] = ['']  # empty value
+  new_query = urlencode(query_params, doseq=True)
 
-      expected_hash = hmac.new(secret_key, url_without_hash.encode(), hashlib.sha1).hexdigest()
+  # Rebuild the URL without the hash
+  url_without_hash = urlunparse((
+      parsed.scheme,
+      parsed.netloc,
+      parsed.path,
+      parsed.params,
+      new_query,
+      parsed.fragment
+  ))
 
-      return hmac.compare_digest(expected_hash, received_hash)
+  # Calculate expected HMAC-SHA1 hash
+  expected_hash = hmac.new(SECRET_KEY, url_without_hash.encode(), hashlib.sha1).hexdigest()
 
-  # print(verify("https://site.com/callback?uid=123&reward=500&hash=abcd"))
+  # Compare securely
+  if hmac.compare_digest(expected_hash, received_hash):
+      print("OK")
+  else:
+      print("INVALID")
 
   ```
 </CodeGroup>
