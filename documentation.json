@@ -35,6 +35,11 @@
         "icon": "link"
       },
       {
+        "title": "API Setup",
+        "path": "api",
+        "icon": "lucide-server"
+      },
+      {
         "group": "Postback Configuration (S2S)",
         "pages": [
           {

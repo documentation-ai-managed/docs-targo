@@ -1,0 +1,196 @@
+---
+title: API
+description: >-
+  The API provides publishers with access to a list of available offers tailored
+  to their app.
+---
+**By integrating this API, publishers can effortlessly retrieve and present these offers directly within their own user interface. This enables the development of fully native, personalized in-app experiences that align seamlessly with the app’s design and user journey driving higher user engagement and boosting conversion rates.**
+
+## **1. Authentication**
+
+**All requests to the API require authentication using your API Key and APP ID .**
+
+1\. Navigate to your Publisher Dashboard and select your App.
+
+2\. In the "Basic Info" tab, find the **API Key** section.
+
+3\. If you don't have an API key, click **Request API Key** and wait for approval.
+
+4\. Once approved, copy your API Key.
+
+## 2. Endpoint
+
+| **Endpoint URL**             | https\://targo.io/api/v1/offers/\[APP\_ID]                     |
+| ---------------------------- | -------------------------------------------------------------- |
+| **&#xA0;      HTTP Method**  |  GET                                                           |
+| **&#xA0;      Headers**      | `Authorization: Bearer YOUR_API_KEY``Accept: application/json` |
+| **&#xA0;      Refresh rate** | 5 minutes                                                      |
+
+<Callout kind="info" collapsed="false">
+  Replace \[APP\_ID] with the unique ID of the application you are querying
+</Callout>
+
+### 2.1  Example
+
+```php
+<?php
+
+$app_id = "YOUR_APP_ID";
+$api_key = "YOUR_API_KEY";
+$limit = 100;
+
+$all_offers = [];
+$current_page = 1;
+
+do {
+    $url = "https://targo.io/api/v1/offers/{$app_id}?limit={$limit}&page={$current_page}";
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer {$api_key}",
+        "Accept: application/json"
+    ]);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($response, true);
+
+    if (isset($data['success']) && $data['success'] === true) {
+        $all_offers = array_merge($all_offers, $data['offers']);
+
+        $total_pages = $data['total_pages'];
+        $current_page++;
+    } else {
+        echo "Error fetching page {$current_page}\n";
+        break;
+    }
+
+} while ($current_page <= $total_pages);
+
+echo "Successfully fetched " . count($all_offers) . " total offers!";
+```
+
+## 3. Query Parameters
+
+All query parameters are **optional** and allow you to filter the inventory returned by the API. If no parameters are provided, the API will return all available offers for your App.
+
+| **Query parameter** | Type   | Description                                                                                                    |
+| ------------------- | ------ | -------------------------------------------------------------------------------------------------------------- |
+| limit               | int    | The number of results to return per page. Maximum is 100.                                                      |
+| page                | int    | The current page number for pagination                                                                         |
+| country             | string | ISO Alpha-2 Country Code (e.g., `US`, `GB`). Filters offers available in that country                          |
+| device              | string | Filters offers by device type. Accepts `android`, `ios`, `desktop`, or `all`                                   |
+| state               | string | Filters offers by US State (e.g., `CA`, `NY`). Accepts comma-separated values (e.g., `CA,NY`)                  |
+| payout              | float  | Filters for offers with a total payout **greater than or equal to** this amount                                |
+| offer\_id           | int    | Fetch details for a specific offer                                                                             |
+| user\_id            | string | The ID of the user on your system. We dynamically insert this into the `tracking_url` provided in the response |
+
+## 4. **Pagination**
+
+The API implements standard pagination. The root of the JSON response contains the following simplified pagination properties:
+
+- `current_page`: The current page number you are viewing.
+
+- `total_pages`: The total number of pages available based on your `limit`.
+
+- `total_offers`: The absolute total number of valid offers available across all pages.
+
+- `count`: How many offers are returned in this specific response.
+
+By passing `?page=2&limit=50`, you can loop through the entire inventory seamlessly until `current_page` reaches `total_pages`.
+
+<Response default-tab="0" show-lines="true" tabs={["TarGo"]}>
+  ```json TarGo
+  {
+    "success": true,
+    "current_page": 1,
+    "total_pages": 2,
+    "total_offers": 176,
+    "count": 100,
+    "offers": [
+      {
+        "offer_id": "6754933000",
+        "offer_name": "Coin Master - Android",
+        "payout": "4.64",
+        "reward": 2320,
+        "country": ["US", "CA"],
+        "device": "android",
+        "description": "<p><strong>Coin Master</strong> is a fun casual game where you spin to earn coins, build villages, and raid other players. Progress through different village levels and collect rewards as you advance.</p>",
+        "requirement": "Install the app and reach Village 20 within 14 days",
+        "offer_image": "https://cdn.targo.io/offers/image.png",
+        "preview_url": "https://play.google.com/store/apps/details?id=com.moonactive.coinmaster",
+        "tracking_url": "https://targo.io/api/v1/track/6754933558/[APP_ID]?signature=eyJpdiI6...&user_id=",
+        "category": "cpi",
+        "state_type": "all",
+        "states": [],
+        "events": [
+          {
+            "event_id": 814965,
+            "event_name": "Install the app",
+            "event_description": "Install the app",
+            "event_payout": 1.54,
+            "event_reward": 770
+          },
+          {
+            "event_id": 681646,
+            "event_name": "Reach villages 5",
+            "event_description": "Reach villages 5 In 1 Days",
+            "event_payout": 1.54,
+            "event_reward": 770
+          }
+        ]
+      }
+    ]
+  }
+  ```
+</Response>
+
+## 5. **Response Fields**
+
+| Attribute          | Type   | Description                                                                                                                                                   | Example                                                                                                                                                                                                                                                                                   |
+| ------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| offer\_id          | int    | The TarGo offer ID.                                                                                                                                           | 4327408000                                                                                                                                                                                                                                                                                |
+| offer\_name        | string | Title of the offer.                                                                                                                                           | "Coin Master"                                                                                                                                                                                                                                                                             |
+| payout             | float  | The **Total Maximum USD Payout** you receive if the user completes all events.                                                                                | 7.50                                                                                                                                                                                                                                                                                      |
+| reward             | float  | The **Total Maximum Virtual Currency** the user receives (calculated via your App's Currency Multiplier)                                                      | 5629.43                                                                                                                                                                                                                                                                                   |
+| country            | array  | Array of supported 2-letter country codes                                                                                                                     | \["US", "CA"]                                                                                                                                                                                                                                                                             |
+| device             | string | The targeted device OS `android`, `ios`, `desktop`, or `all`)                                                                                                 | "android"                                                                                                                                                                                                                                                                                 |
+| description        | string | Description of the offer                                                                                                                                      |                                                                                                                                                                                                                                                                                           |
+| requirement        | string | Instructional requirement for the user.                                                                                                                       |                                                                                                                                                                                                                                                                                           |
+| offer\_image       | string |  URL to the offer thumbnail/icon.                                                                                                                             | <a href="https://cdn.targo.io/offers/image.png" target="_blank" rel="noopener noreferrer">https\://cdn.targo.io/offers/image.png</a>                                                                                                                                                      |
+| preview\_url       | string | The Google Play, App Store, or web destination link for the offer                                                                                             | <a href="https://play.google.com/store/apps/details?id=com.moonactive.coinmaster" target="_blank" rel="noopener noreferrer">https\://play.google.com/store/apps/details?id=com.moonactive.coinmaster</a>                                                                                  |
+| tracking\_url      | string | Redirect your users to this URL when they click on the offer. Please note that the `user_id=` parameter is required and must be included in the tracking URL. | <a href="https://targo.io/api/v1/track/000000/[APP_ID]?signature=eyNDQxMDWNjZDQ0M2Q0YjE5NCIsInRhZyI6IiJ9&user_id=" target="_blank" rel="noopener noreferrer">https\://targo.io/api/v1/track/000000/\[APP\_ID]?signature=eyNDQxMDWNjZDQ0M2Q0YjE5NCIsInRhZyI6IiJ9\&user\_id=</a>\[USER\_ID] |
+| category           | string | The type of offer                                                                                                                                             | `"cpi`"                                                                                                                                                                                                                                                                                   |
+| state\_type        | string | The mechanism of filtering if US states are targeted (e.g., `include`, `exclude`, or `all`)                                                                   | include                                                                                                                                                                                                                                                                                   |
+| states             | array  | Array of targeted 2-letter US State codes                                                                                                                     | \["NY", "CA"]                                                                                                                                                                                                                                                                             |
+| events             | array  | An array of multi-reward steps (applicable for multi-level games)                                                                                             | \[...]                                                                                                                                                                                                                                                                                    |
+| event\_id          | int    | ID of a event in the offer                                                                                                                                    | 814900                                                                                                                                                                                                                                                                                    |
+| event\_name        | string | The name of the event step.                                                                                                                                   | Install the app                                                                                                                                                                                                                                                                           |
+| event\_description | string | Detailed instructions for the event step.                                                                                                                     | Play 30 Minutes In 2 Days                                                                                                                                                                                                                                                                 |
+| event\_payout      | float  | The actual USD amount you receive when the user completes this specific step                                                                                  | 1.20                                                                                                                                                                                                                                                                                      |
+| event\_reward      | float  | The exact amount of virtual currency to explicitly credit your user.                                                                                          | 555.76                                                                                                                                                                                                                                                                                    |
+
+## **6. Tracking Link**
+
+The `tracking_url`**&#x20;**&#x69;ncluded in the offers list is a securely generated, time-sensitive redirect link. The link is valid for 30 minutes if a user attempts to access it after that period, it will have expired.
+
+### 6.1 **Tracking Link Parameters**
+
+You can append data directly to the URL string provided in the JSON:
+
+| Attribute | Type   | Required      | Description                                                                                            | Example                                |
+| --------- | ------ | ------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------- |
+| user\_id  | string | Yes           | Automatically filled if you passed `user_id` to the API request, otherwise append your user's ID here. | "user\_123"                            |
+| gaid      | string | Yes (Android) | (Android Only) The Google Advertising ID of the device.                                                | 3f9c2a7e-8b41-4d6a-9c2f-1e7b5a4d8c90   |
+| idfa      | string | Yes (iOS)     | (iOS Only) The Identifier for Advertisers of the                                                       | `A7F3C9D2-5E8B-4A1F-9D6C-2B7E4F8A3C91` |
+| sub1      | string | No            | (e.g., Campaign tracking, traffic source IDs). We will append these back in the postback!              | campaign\_x                            |
+| sub2      | string | No            | (e.g., Campaign tracking, traffic source IDs). We will append these back in the postback!              | source\_y                              |
+
+### 6.2 Example
+
+<a href="https://yourdomain.com/api/v1/track/6754933558/{app_id}?signature=eyJpdiI6...&user_id=user_123&gaid=e925665f-4d8e...&sub1=campaign_x" target="_blank" rel="noopener noreferrer">https\://targo.io/api/v1/track/6754933000/\[APP\_ID]?signature=eyJpdiI6...\&user\_id=user\_123\&gaid=e925665f-4d8e...\&sub1=campaign\_x</a>
+
+When a user on your platform clicks the offer, you should `redirect` their browser directly to this generated `tracking_url`.
+
